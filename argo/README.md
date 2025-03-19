@@ -53,13 +53,42 @@ Writing a parser is a fundamental skill in computer science and software enginee
 
 2. Parsing & Handling Structured Data (JSON, XML, YAML, CSV, etc.)
 
-   When an application loads a JSON file, it parses it to extract data. Learning parsing you learn how to process data formats. 
+   When an application loads a JSON file, it parses it to extract data. Learning parsing you learn how to process data formats.
 
 3. Improving Your Problem-Solving & Algorithm Skills
 
     Writing a parser requires understanding recursion, state machines, and tree structures. You learn how to break a big problem (like parsing JSON) into smaller steps.
 
-JSON AST Structure for implementing argo:
+SIMPLE JSON PARSER ARGO:
+
+Function prototype:
+
+int argo(json* dst, FILE* stream);
+
+    dst: Pointer to the AST structure where parsed data should be stored.
+    stream: The file pointer from which to read JSON data.
+    Return values:
+        1 on success.
+        -1 on failure.
+
+Allowed JSON Types
+
+    Numbers: Only basic integers (%d format).
+    Strings: Must handle escaping for \" and \\.
+    Maps (Objects): JSON key-value pairs enclosed in {}.
+
+Error Handling
+
+    Invalid token: Print unexpected %c\n.
+    Unexpected EOF: Print unexpected end of input\n.
+    Spaces: Are invalid (if encountered, return an error).
+
+Disallowed JSON Features
+
+    Arrays ([]): Do not implement.
+    Booleans (true, false): Ignore.
+    Null (null): Ignore.
+    Other Escape Sequences (\n, \uXXXX, etc.): Not required.
 
 typedef enum {
     JSON_NUMBER,
