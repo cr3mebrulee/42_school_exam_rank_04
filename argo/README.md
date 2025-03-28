@@ -1,18 +1,20 @@
+## THE TASK PURPOSE
+
 The task is to implement a basic JSON parser in C that constructs an Abstract Syntax Tree (AST) from a JSON file.
 
-WHAT AST is:
+### WHAT AST IS:
 
 An AST stands for Abstract Syntax Tree. AST is a tree-like structure used to represent structured data.
 
 Each node in an AST represents a construct (e.g., a number, string, or object in JSON). Nodes are linked together to form a hierarchical structure. Unlike a binary tree, an AST can have more than two children per node.
 
-WHAT JSON is:
+### WHAT JSON IS:
 
 JSON (JavaScript Object Notation) is a text-based format for storing and exchanging data in a way that’s both human-readable and machine-parsable. JSON is relatively easy to learn and to troubleshoot. Although JSON has its roots in JavaScript, it has grown into a very capable data format that simplifies data interchange across diverse platforms and programming languages. If you're involved in web development, data analysis, or software engineering, JSON is an important data format to understand.
 
 Developers often prefer JSON because it simplifies the exchange of data between different technologies. For example, when a user interacts with a web application to make a purchase, the application sends the user's input to the server in JSON format. The server processes the data and sends back a response, also in JSON format, which is then rendered by the web application. This allows for seamless data exchange between client and the server, facilitating fast, dynamic, and interactive web experiences. [1]
 
-JSON Data Types
+### JSON Data Types
 
 In the context of development, data types are the different types of values that can be stored and manipulated in a programming language. Each data type has its own set of attributes and behaviors. JSON supports several data types, including the following:
 
@@ -43,7 +45,7 @@ Examples of Valid JSON Objects
 {"person": {"name": "Bob", "age": 30}}
     An object can contain another object as a value.
 
-PURPOSE OF LEARNING PARSER:
+### PURPOSE OF LEARNING PARSER:
 
 Writing a parser is a fundamental skill in computer science and software engineering because it teaches you how to process and understand structured data
 
@@ -59,7 +61,7 @@ Writing a parser is a fundamental skill in computer science and software enginee
 
     Writing a parser requires understanding recursion, state machines, and tree structures. You learn how to break a big problem (like parsing JSON) into smaller steps.
 
-SIMPLE JSON PARSER ARGO:
+### HOW TO IMPLEMENT 42'S JSON PARSER ARGO:
 
 Function prototype:
 
@@ -109,7 +111,6 @@ typedef struct json {
             int size;          // Number of key-value pairs
         } object;
     } data;
-
 } json;
 
 Union
