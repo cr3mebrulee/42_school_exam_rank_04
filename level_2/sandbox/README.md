@@ -1,8 +1,8 @@
-## SANDBOX
+## THE SANDBOX TASK PURPOSE
 
-This task is about creating a sandbox environment to run functions in a controlled way and determining whether the function is "nice" or "bad." The idea is to isolate the function execution so that if it misbehaves (e.g., crashes, times out, or exits with an error), it does not affect the overall system. 
+This task is about creating a sandbox environment to run functions in a controlled way and determining whether the function is "nice" or "bad." The idea is to isolate the function execution so that if it misbehaves (e.g., crashes, times out, or exits with an error), it does not affect the overall system.
 
-## What sanbox is
+### WHAT SANDBOX IS
 
 In the computer field, sandboxing is a security mechanism that isolates running programs, such as untrusted processes or code, to restrict their access permissions. The virtual environment contains some virtual hardware and software resources, such as file systems, networks, and operating systems, to run applications or processes. A sandboxed program can access only the limited number of resources inside the sandbox, without affecting the external application, system, or platform. This prevents the program from permanently changing other programs or data in the computer. In the cybersecurity field, sandboxing isolates malicious files to identify unknown attacks.
 
@@ -29,7 +29,7 @@ What our sandbox does:
 
 This is similar to application sandboxing, but at a smaller scale (process level).
 
-## Restricted environment in sanbox
+### RESRTRICTED ENVIRONMENT IN SANDOX
 
 Restricted environment means limiting what a process (or function) can do to prevent it from causing harm to the system. This includes restricting its access to system resources, execution time, and interactions with other processes.
 
@@ -40,11 +40,11 @@ A restricted environment imposes rules and limitations on a process. These restr
 ✅ Running indefinitely (enforcing a timeout).
 ✅ Becoming a zombie process (proper cleanup after execution).
 
-## How is a Process Restricted?
+### HOW IS A PROCESS RESTRICTED
 
 The function int sandbox() will isolate process and run the untrusted function inside a separate process (child) so it cannot affect the main program. Main program will monitor the run time of the untrusted function and kill the process if it runs too long. Main program will detect crashes if they happen and handle signals (e.g., segmentation faults, illegal instructions). Finally, main program will monitore the exit status of the untrusted function and prevent zombie processes.
 
-## Plan to implement a sanbox
+## PLAN TO IMPEMENT A 42'S SANDBOX
 
 🔹 Step 1: Process Isolation
     The function f() is executed in a child process (fork()), so if it crashes, it doesn’t affect the parent.
