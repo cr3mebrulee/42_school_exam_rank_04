@@ -1,0 +1,3 @@
+Hello from nice_function!
+Bad function: Segmentation fault
+Bad function: timed out after 2 seconds

@@ -1,0 +1,4 @@
+Nice function!
+Bad function: exited with code 42
+Bad function: Segmentation fault
+Bad function: timed out after 2 seconds
