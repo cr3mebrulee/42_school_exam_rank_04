@@ -1,0 +1,2 @@
+Hello from nice_function!
+Nice function!

@@ -21,6 +21,7 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
 	pid_t				cpid;
 	struct sigaction 	sa;
+	sigset_t			set;
 	int					status;
 	pid_t				ret;
 
@@ -28,6 +29,10 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 	sa.sa_handler = handle_alarm;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
+	sigemptyset(&set); // init to 0
+	sigaddset(&set, SIGINT); // add SIGINT to signal sets
+	sigaddset(&set, SIGTERM); // add SIGTERM to signal sets
+	sigprocmask(SIG_BLOCK, &set, NULL); // block signals set
 	if (sigaction(SIGALRM, &sa, NULL) == -1)
 	{
 		perror("sigaction failed");
@@ -46,7 +51,6 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		// Reset signals to default to avoid inheriting parent's handlers
 		struct sigaction sa_default = { .sa_handler = SIG_DFL };
 		sigaction(SIGALRM, &sa_default, NULL);
-
 		f(); // Execute function
 		exit(0);
 	}
@@ -85,4 +89,5 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 			usleep(1000); // Sleep briefly to reduce CPU usage
 		}
 	}
+	sigprocmask(SIG_UNBLOCK, &set, NULL); //unblock signals set
 }

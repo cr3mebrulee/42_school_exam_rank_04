@@ -44,7 +44,7 @@ A restricted environment imposes rules and limitations on a process. These restr
 
 The function int sandbox() will isolate process and run the untrusted function inside a separate process (child) so it cannot affect the main program. Main program will monitor the run time of the untrusted function and kill the process if it runs too long. Main program will detect crashes if they happen and handle signals (e.g., segmentation faults, illegal instructions). Finally, main program will monitore the exit status of the untrusted function and prevent zombie processes.
 
-## PLAN TO IMPEMENT A 42'S SANDBOX
+#### PLAN TO IMPEMENT A 42'S SANDBOX
 
 🔹 Step 1: Process Isolation
     The function f() is executed in a child process (fork()), so if it crashes, it doesn’t affect the parent.
@@ -64,7 +64,9 @@ The function int sandbox() will isolate process and run the untrusted function i
 🔹 Step 5: Preventing Zombie Processes
     Ensures that no orphaned child processes remain by correctly using waitpid().
 
-## SIGNALS HANDLING
+#### SIGNALS HANDLING
+
+More descriptive information about signals read here: https://github.com/retiukhina/signals
 
 When a process receives a signal, it is stored in the process's pending signal set inside the kernel until it is handled or ignored. The operating system manages signals using a combination of signal masks, pending signals, and process states.
 1. Pending Signal Set (sigpending)
@@ -78,9 +80,7 @@ Each process in the system has a process descriptor (task_struct in Linux).
 This structure contains:
 
     A pending signal queue (struct sigpending)
-
     A blocked signal mask (sigset_t blocked)
-
     The signal handler table (struct sighand_struct)
 
 Kernel Signal Storage Example (Linux)
@@ -91,36 +91,32 @@ struct task_struct {
     struct sighand_struct *sighand;  // Signal handlers
 };
 
-💡 Key Takeaway:
-
-    Pending signals are stored in pending.
-
-    Blocked signals stay in pending until they are unblocked.
-
-    Handled signals invoke a function and are then removed.
-
 3. How the Kernel Processes a Signal
 
     Signal Sent:
 
         A signal (e.g., SIGALRM) is sent via kill(), alarm(), etc.
-
         The kernel adds it to the pending signal set in task_struct.
 
     Check Blocked Signals:
 
         If the signal is blocked (e.g., with sigprocmask()), it stays in pending.
-
         If it is not blocked, the process handles it immediately.
 
     Signal is Delivered:
 
         If a handler exists (sigaction() was set), it executes the function.
-
         If no handler exists, the default action occurs (terminate, ignore, etc.).
 
     Signal is Removed from Pending List:
 
         Once handled, the signal disappears from pending.
-
         If it was blocked, it stays in pending until unblocked.
+
+#### GLOBAL VARIABLE static volatile sig_atomic_t timeout_flag 
+
+static: This makes timeout_flag a local static variable, meaning it’s only visible within the file and retains its value across function calls. It's not destroyed when the function scope ends.
+
+volatile: This keyword tells the compiler that the value of timeout_flag can be changed outside the program's control, such as within a signal handler. This ensures that the compiler doesn’t optimize reads or writes to timeout_flag as it could be modified asynchronously by the signal handler.
+
+sig_atomic_t: This is a type that guarantees atomic access to the variable, meaning operations on this variable are guaranteed to be indivisible. This is important for signal safety. When signals are handled, the program may be interrupted at any point, and the signal handler may access or modify variables. Using sig_atomic_t ensures that modifications to this variable are atomic, preventing inconsistencies when it’s accessed by both the signal handler and the main program.
