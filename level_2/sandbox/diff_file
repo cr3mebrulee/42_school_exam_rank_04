@@ -1,5 +1,0 @@
-1c1,2
-< Hello from nice_function!
----
-> Nice function!
-> Bad function: exited with code 42

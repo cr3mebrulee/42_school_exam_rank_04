@@ -53,7 +53,7 @@ The function int sandbox() will isolate process and run the untrusted function i
     If the function runs for too long, alarm(timeout) ensures it is killed after timeout seconds.
 
 🔹 Step 3: Signal Handling (Catching Crashes)
-    If f() causes a segfault (SIGSEGV), abort (SIGABRT), or any other signal, your program will detect it using sigaction().
+    If f() causes a segfault (SIGSEGV), abort (SIGABRT), or any other signal, the program will detect it using sigaction().
 
 🔹 Step 4: Monitoring Exit Status
     waitpid() helps determine why the function terminated:
@@ -63,3 +63,64 @@ The function int sandbox() will isolate process and run the untrusted function i
 
 🔹 Step 5: Preventing Zombie Processes
     Ensures that no orphaned child processes remain by correctly using waitpid().
+
+## SIGNALS HANDLING
+
+When a process receives a signal, it is stored in the process's pending signal set inside the kernel until it is handled or ignored. The operating system manages signals using a combination of signal masks, pending signals, and process states.
+1. Pending Signal Set (sigpending)
+
+When a signal is sent to a process (via kill(), alarm(), or another method), it is added to the process's pending signal set. This is a bitmask stored in the process’s kernel structure. Each signal has a specific bit in this set. If a signal is blocked, it stays in the pending set until unblocked. If a signal is not blocked, the process handles it immediately.
+
+2. Where Exactly is the Signal Stored?
+Inside the Kernel Process Table
+
+Each process in the system has a process descriptor (task_struct in Linux).
+This structure contains:
+
+    A pending signal queue (struct sigpending)
+
+    A blocked signal mask (sigset_t blocked)
+
+    The signal handler table (struct sighand_struct)
+
+Kernel Signal Storage Example (Linux)
+
+struct task_struct {
+    sigset_t blocked;        // Mask of blocked signals
+    struct sigpending pending;  // Signals that are pending
+    struct sighand_struct *sighand;  // Signal handlers
+};
+
+💡 Key Takeaway:
+
+    Pending signals are stored in pending.
+
+    Blocked signals stay in pending until they are unblocked.
+
+    Handled signals invoke a function and are then removed.
+
+3. How the Kernel Processes a Signal
+
+    Signal Sent:
+
+        A signal (e.g., SIGALRM) is sent via kill(), alarm(), etc.
+
+        The kernel adds it to the pending signal set in task_struct.
+
+    Check Blocked Signals:
+
+        If the signal is blocked (e.g., with sigprocmask()), it stays in pending.
+
+        If it is not blocked, the process handles it immediately.
+
+    Signal is Delivered:
+
+        If a handler exists (sigaction() was set), it executes the function.
+
+        If no handler exists, the default action occurs (terminate, ignore, etc.).
+
+    Signal is Removed from Pending List:
+
+        Once handled, the signal disappears from pending.
+
+        If it was blocked, it stays in pending until unblocked.
