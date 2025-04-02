@@ -2,6 +2,8 @@
 
 echo "This script is used to test the JSON parser"
 
+cc -Wall -Wextra -Werror main.c argo.c argo_utils.c -o argo
+
 rm output_expected.txt output_actual.txt
 
 # ANSI escape codes for colors

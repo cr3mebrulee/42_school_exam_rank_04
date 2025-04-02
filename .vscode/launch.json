@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/tanya/Berlin42/projects/exam_04/42_school_exam_rank_04/level_2",
-      "program": "/home/tanya/Berlin42/projects/exam_04/42_school_exam_rank_04/level_2/build/Debug/outDebug",
+      "cwd": "/home/tanya/Berlin42/projects/exam_04/42_school_exam_rank_04/level_2/sandbox",
+      "program": "/home/tanya/Berlin42/projects/exam_04/42_school_exam_rank_04/level_2/sandbox/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
