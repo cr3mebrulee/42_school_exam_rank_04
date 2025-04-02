@@ -21,6 +21,14 @@ check_diff() {
     fi
 }
 
+check_return(int i, int j) {
+	if [ i == j]; then
+		echo "Return value is correct"
+	else
+		echo "Return value is not correct"
+	fi
+}
+
 # Path to the parser executable
 ARGO=./argo
 
