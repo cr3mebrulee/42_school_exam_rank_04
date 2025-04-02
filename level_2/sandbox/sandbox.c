@@ -63,22 +63,30 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 			ret = waitpid(cpid, &status, WNOHANG);
 			if (ret == cpid) // Child exited
 			{
-				if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+				if (WIFEXITED(status)) // Case 1: Child terminated normally
 				{
-					if (verbose)
-						printf("Nice function!\n");
-					return (1);
-				}
-				else if (WIFSIGNALED(status))
+					int exit_code = WEXITSTATUS(status);
+					if (exit_code == 0) // Case 1.1: Child terminated with 0 exit code
+					{
+						if (verbose)
+							printf("Nice function!\n");
+						return (1);
+					}
+					else // Case 1.2: Child terminated with non-zero exit code
+					{
+						if (verbose)
+							printf("Bad function: exited with code %d\n", exit_code);
+						return (0);
+					}
+				} 
+				else if (WIFSIGNALED(status)) // Case 2: Child was killed by a signal
 				{
 					if (verbose)
 						printf("Bad function: %s\n", strsignal(WTERMSIG(status)));
 					return (0);
 				}
-				else
-					return (0);
 			}
-			else if (timeout_flag) // Timeout occurred
+			else if (timeout_flag) // Case 3: Timeout occurred
 			{
 				kill(cpid, SIGKILL); // Kill child process
 				waitpid(cpid, &status, 0); // Clean up zombie process
