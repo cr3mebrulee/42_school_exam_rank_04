@@ -2,37 +2,34 @@
 #define ARGO_H
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
+#include <malloc.h>
 
-typedef enum
-{
-	JSON_NUMBER,
-	JSON_STRING,
-	JSON_OBJECT
-} json_type;
-
-typedef struct json
-{
-	json_type	type;
-
-	union
-	{
-		int		number;
+typedef struct	json {
+	enum {
+		MAP,
+		INTEGER,
+		STRING
+	} type;
+	union {
+		struct {
+			struct pair	*data;
+			size_t		size;
+		} map;
+		int	integer;
 		char	*string;
-
-		struct
-			{
-				char **keys;
-				struct json **values;
-				int size;
-			} object;
-	} data;
-
+	};
 }	json;
 
-int	argo(json *dst, FILE *stream);
+typedef struct	pair {
+	char	*key;
+	json	value;
+}	pair;
+
+void	free_json(json j);
+int		argo(json *dst, FILE *stream);
 
 #endif
 
