@@ -57,46 +57,39 @@ json	parse_map(FILE *stream)
 	//Skip opening curly brace
 	if (!accept(stream, '{'))
 	{
-		set_g_error();
+		g_error = 1;
 		return (json_map);
 	}
-	if (peek(stream) != EOF)
+	do
 	{
-		do
+		pair new_pair;
+		new_pair.key = parse_string(stream);
+		if (g_error)
 		{
-			pair new_pair;
-			if (peek(stream) != '"')
-			{
-				g_error_no_key = 1;
-				return (json_map);
-			}
-			new_pair.key = parse_string(stream);
-			if (g_error)
-			{
-				free(new_pair.key);
-				return (json_map);
-			}
-			if (!accept(stream, ':'))
-			{
-				set_g_error();
-				return (json_map);
-			}
-			new_pair.value = parse_json(stream);
-			if (g_error)
-			{
-				free(new_pair.key);
-				free_json(new_pair.value);
-				return (json_map);
-			}
-			json_map.map.size++;
-			json_map.map.data = realloc(json_map.map.data, json_map.map.size
-					* sizeof(pair));
-			json_map.map.data[json_map.map.size - 1] = new_pair;
-		} while (accept(stream, ','));
-	}
-	if (g_error || !accept(stream, '}'))
+			g_error_no_key = 1;
+			free(new_pair.key);
+			return (json_map);
+		}
+		if (!accept(stream, ':'))
+		{
+			g_error = 1;
+			return (json_map);
+		}
+		new_pair.value = parse_json(stream);
+		if (g_error)
+		{
+			free(new_pair.key);
+			free_json(new_pair.value);
+			return (json_map);
+		}
+		json_map.map.size++;
+		json_map.map.data = realloc(json_map.map.data, json_map.map.size
+				* sizeof(pair));
+		json_map.map.data[json_map.map.size - 1] = new_pair;
+	} while (accept(stream, ','));
+	if (!accept(stream, '}'))
 	{
-		set_g_error();
+		g_error = 1;
 		return (json_map);
 	}
 	return (json_map);
@@ -122,7 +115,7 @@ char	*parse_string(FILE *stream)
 	str_len = 0;
 	if (!accept(stream, '"'))
 	{
-		set_g_error();
+		g_error = 1;
 		return (res);
 	}
 	while (peek(stream) != '"' && peek(stream) != EOF && !g_error)
@@ -138,7 +131,7 @@ char	*parse_string(FILE *stream)
 		{
 			if (peek(stream) != '\\' && peek(stream) != '\"')
 			{
-				set_g_error();
+				g_error = 1;
 				return (res);
 			}
 			cur_char = getc(stream);
@@ -147,7 +140,7 @@ char	*parse_string(FILE *stream)
 	}
 	if (!accept(stream, '"'))
 	{
-		set_g_error();
+		g_error = 1;
 	}
 	return (res);
 }
@@ -163,16 +156,11 @@ json	parse_number(FILE *stream)
 	ret_fscanf = fscanf(stream, "%d", &res);
 	if (ret_fscanf <= 0 || ret_fscanf == EOF)
 	{
-		set_g_error();
+		g_error = 1;;
 		return (num_json);
 	}
 	num_json.integer = res;
 	return (num_json);
-}
-
-void	set_g_error(void)
-{
-	g_error = 1;
 }
 
 void	debug_print_cur_char(FILE *stream, char const *msg)
