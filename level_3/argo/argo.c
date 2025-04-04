@@ -113,6 +113,7 @@ char	*parse_string(FILE *stream)
 	res = malloc(sizeof(char));
 	res[0] = '\0';
 	str_len = 0;
+	//Skip first quote
 	if (!accept(stream, '"'))
 	{
 		g_error = 1;
@@ -138,6 +139,7 @@ char	*parse_string(FILE *stream)
 		}
 		res[str_len - 1] = cur_char;
 	}
+	// Skip last quote
 	if (!accept(stream, '"'))
 	{
 		g_error = 1;
