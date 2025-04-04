@@ -42,7 +42,7 @@ int	ft_popen(const char *file, char *const argv[], char type)
         close(pipefd[1]);
         return(pipefd[0]);
     }
-    if (type = 'w')
+    if (type == 'w')
     {
         close(pipefd[0]);
         return (pipefd[1]);
