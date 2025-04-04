@@ -113,9 +113,11 @@ char	*parse_string(FILE *stream)
 	res = malloc(sizeof(char));
 	res[0] = '\0';
 	str_len = 0;
+	//Skip first quote
 	if (!accept(stream, '"'))
 	{
 		g_error = 1;
+		free(res);
 		return (res);
 	}
 	while (peek(stream) != '"' && peek(stream) != EOF && !g_error)
@@ -126,18 +128,19 @@ char	*parse_string(FILE *stream)
 		str_len++;
 		res = realloc(res, (str_len + 1) * sizeof(char));
 		res[str_len] = '\0';
-		cur_char = getc(stream);
-		if (cur_char == '\\')
+		cur_char = getc(stream); // Read one char from stream
+		if (cur_char == '\\') // If it's a backslash, check for escape sequence
 		{
-			if (peek(stream) != '\\' && peek(stream) != '\"')
+			if (peek(stream) != '\\' && peek(stream) != '\"') // Ensure valid escape
 			{
 				g_error = 1;
-				return (res);
+				return (res); // Return early if its; an invalid escape sequence
 			}
-			cur_char = getc(stream);
+			cur_char = getc(stream); // Read and consume the next char (escaped one)
 		}
-		res[str_len - 1] = cur_char;
+		res[str_len - 1] = cur_char; // Store the processed char in the buffer
 	}
+	// Skip last quote
 	if (!accept(stream, '"'))
 	{
 		g_error = 1;
@@ -152,7 +155,7 @@ json	parse_number(FILE *stream)
 	int		ret_fscanf;
 
 	num_json.type = INTEGER;
-	num_json.integer = -42;
+	num_json.integer = -42; // sentinel value
 	ret_fscanf = fscanf(stream, "%d", &res);
 	if (ret_fscanf <= 0 || ret_fscanf == EOF)
 	{
