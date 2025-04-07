@@ -117,7 +117,6 @@ char	*parse_string(FILE *stream)
 	if (!accept(stream, '"'))
 	{
 		g_error = 1;
-		free(res);
 		return (res);
 	}
 	while (peek(stream) != '"' && peek(stream) != EOF && !g_error)
