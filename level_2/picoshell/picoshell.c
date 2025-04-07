@@ -24,13 +24,13 @@ int execute_in_pipe(char **cmds[], int n)
 	int		fds[n -1][2];
 	pid_t	cpid;
 
-	//create all pipes
+	//reate all pipes
 	for (int i = 0; i < n - 1; i++)
 	{
 		if (pipe(fds[i]) == -1)
 			return (-1);
 	}
-	for (int i = 0; i < n; i++) 
+	for (int i = 0; i < n; i++)
 	{
 		cpid = fork();
 		if (cpid == 0) 
@@ -39,17 +39,25 @@ int execute_in_pipe(char **cmds[], int n)
 			if (i == 0) 
 			{
 				dup2(fds[i][1], STDOUT_FILENO);
+				if (close(fds[i][1]) == -1)
+					return (1);
 			}
 			// Intermediate commands: redirect stdin and stdout to pipes
 			else if (i > 0 && i < n - 1) 
 			{
 				dup2(fds[i - 1][0], STDIN_FILENO);  // Read from previous pipe
+				if (close(fds[i - 1][0]) == -1)
+					return (1);
 				dup2(fds[i][1], STDOUT_FILENO);     // Write to current pipe
+				if (close(fds[i][1]) == -1)
+					return (1);
 			}
 			// Last command: redirect stdin from the previous pipe
 			else if (i == n - 1) 
 			{
 				dup2(fds[i - 1][0], STDIN_FILENO);  // Read from previous pipe
+				if (close(fds[i - 1][0]) == -1)
+					return (1);
 			}
 			// Close all pipe fds
 			for (int j = 0; j < n - 1; j++) 

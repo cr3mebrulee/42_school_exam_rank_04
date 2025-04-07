@@ -47,6 +47,6 @@ return_expected=0
 check_diff shell_output pico_output
 check_return $return_pico $return_expected
 
-rm pico_output shell_output pico
+rm pico_output shell_output pico diff_file
 
 exit 0

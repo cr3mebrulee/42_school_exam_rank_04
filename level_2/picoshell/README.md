@@ -96,3 +96,34 @@ Example Command:
     Only the child processes should call execvp, and only after doing redirection.
     Use dup2() to redirect stdin/stdout to the pipe ends.
 
+#### DEBUGGING
+
+1. Verify open file desriptors with /proc/<pid>/fd on Linux
+
+    Run the program:
+    ./pico sort "|" uniq &
+
+    Then find the PID:
+    ps aux | grep pico
+
+    Then:
+    ls -l /proc/<pid>/fd
+
+    Output should look like:
+
+    0 -> /dev/pts/0
+    1 -> /dev/pts/0
+    2 -> /dev/pts/0
+    3 -> pipe:[123456]
+
+    If there is still pipe FDs (3, 4, etc.), something's not closed.
+
+2. Verify zobmy processes:
+
+    Run the program:
+    ./pico ls "|" wc -l
+
+    In another terminal, check for zombies with:
+    ps -eo pid,ppid,state,cmd | grep pico
+
+    If there is a Z next to one of the processes, it means shell isn’t reaping that child.
