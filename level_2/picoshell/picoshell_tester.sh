@@ -23,7 +23,7 @@ check_return() {
 
 touch shell_output pico_output diff_file
 
-echo "Test 1"
+echo "Test 1: ls"
 ./pico ls > pico_output
 return_pico=$?
 ls > shell_output
