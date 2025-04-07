@@ -28,10 +28,25 @@ echo "Test 1: ls"
 return_pico=$?
 ls > shell_output
 return_expected=0
-diff shell_output pico_output > diff_file
 check_diff shell_output pico_output
 check_return $return_pico $return_expected
 
-rm shell_output pico_output
+echo "Test 2: ls | wc -l"
+./pico  ls -l "|" wc -l > pico_output
+return_pico=$?
+ls -l | wc -l > shell_output
+return_expected=0
+check_diff shell_output pico_output
+check_return $return_pico $return_expected
+
+echo "Test 3: wrong commands"
+./pico lsdf "|" wcsaf > pico_output
+return_pico=$?
+sort lsdf | wcsaf > shell_output
+return_expected=0
+check_diff shell_output pico_output
+check_return $return_pico $return_expected
+
+rm pico_output shell_output pico
 
 exit 0
