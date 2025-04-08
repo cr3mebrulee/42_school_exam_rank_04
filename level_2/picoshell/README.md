@@ -55,7 +55,9 @@ Example Command:
     Create a new pipe before forking, except for the last command (it doesn't need to pipe anything out).
     Fork a child process.
 
-4. In each child process:
+4. Duplicate fds to STDIN or STDOUT depends on the number of command.
+
+In each child process:
 
     If it's not the first command:
         Redirect stdin to read from the previous pipe’s read end.
@@ -66,7 +68,17 @@ Example Command:
     Close any unused file descriptors.
     Execute commands.
 
-    ##### How to execute the commands with execvp:
+    cmd1:   STDOUT  → fds[0][1]
+    cmd2:   STDIN   ← fds[0][0], 
+            STDOUT  → fds[1][1]
+    cmd3:   STDIN   ← fds[1][0]
+
+5. Close unused pipe file descriptors:
+
+    Close all unused pipe ends.
+    Close the original used FD after dup2().
+   
+6. Execute the commands with execvp:
         Each element in cmds is a char ** — exactly what execvp wants as its second argument.
         So for our commands:
         🔹 First command (cmds[0])
@@ -103,14 +115,19 @@ Example Command:
     Run the program:
     ./pico sort "|" uniq &
 
-    Then find the PID:
+    Then find the PID of the parent process:
     ps aux | grep pico
 
+    Then find the PID of the chil process:
+    ps --ppid <parent pid>> -o pid,ppid,cmd
+
     Then:
-    ls -l /proc/<pid>/fd
+    ps --ppid <child pid> -o pid,ppid,cmd
+
+    Then:
+    ls -l /proc/<child pid>/fd
 
     Output should look like:
-
     0 -> /dev/pts/0
     1 -> /dev/pts/0
     2 -> /dev/pts/0
