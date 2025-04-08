@@ -25,8 +25,8 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 	int					status;
 	pid_t				ret;
 
-	// Setup signal handling for timeout
-	sa.sa_handler = handle_alarm;
+	
+	sa.sa_handler = handle_alarm; // Setup signal handling for timeout
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	sigemptyset(&set); // init to 0
