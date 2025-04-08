@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Hello"
 
-gcc main.c picoshell.c -o pico
+gcc main.c picoshell_2.c -o pico
 
 check_diff() {
 	diff "$1" "$2" > diff_file
@@ -43,6 +43,24 @@ echo "Test 3: wrong commands"
 ./pico lsdf "|" wcsaf > pico_output
 return_pico=$?
 sort lsdf | wcsaf > shell_output
+return_expected=0
+check_diff shell_output pico_output
+check_return $return_pico $return_expected
+
+# Additional Test 1: Simple command with arguments (echo)
+echo "Test 4: Simple command with arguments"
+./pico echo "Hello" > pico_output
+return_pico=$?
+echo "Hello" > shell_output
+return_expected=0
+check_diff shell_output pico_output
+check_return $return_pico $return_expected
+
+# Additional Test 2: Pipe between two commands (echo "Hello" | grep "Hello")
+echo "Test 5: Pipe between two commands"
+./pico echo "Hello" "|" grep "Hello" > pico_output
+return_pico=$?
+echo "Hello" | grep "Hello" > shell_output
 return_expected=0
 check_diff shell_output pico_output
 check_return $return_pico $return_expected
