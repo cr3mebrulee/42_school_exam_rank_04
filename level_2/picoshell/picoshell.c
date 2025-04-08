@@ -24,7 +24,7 @@ int execute_in_pipe(char **cmds[], int n)
 	int		fds[n -1][2];
 	pid_t	cpid;
 
-	//reate all pipes
+	//create all pipes
 	for (int i = 0; i < n - 1; i++)
 	{
 		if (pipe(fds[i]) == -1)
