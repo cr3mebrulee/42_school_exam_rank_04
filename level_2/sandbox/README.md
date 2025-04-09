@@ -44,7 +44,7 @@ A restricted environment imposes rules and limitations on a process. These restr
 
 The function int sandbox() will isolate process and run the untrusted function inside a separate process (child) so it cannot affect the main program. Main program will monitor the run time of the untrusted function and kill the process if it runs too long. Main program will detect crashes if they happen and handle signals (e.g., segmentation faults, illegal instructions). Finally, main program will monitore the exit status of the untrusted function and prevent zombie processes.
 
-#### PLAN TO IMPEMENT A 42'S SANDBOX
+### PLAN TO IMPEMENT A 42'S SANDBOX
 
 🔹 Step 1: Process Isolation
     The function f() is executed in a child process (fork()), so if it crashes, it doesn’t affect the parent.
@@ -66,37 +66,19 @@ The function int sandbox() will isolate process and run the untrusted function i
 
 #### SIGNALS HANDLING
 
-More descriptive information about signals read here: https://github.com/retiukhina/signals
+More detailed information about signals is here: https://github.com/retiukhina/signals
 
 When a process receives a signal, it is stored in the process's pending signal set inside the kernel until it is handled or ignored. The operating system manages signals using a combination of signal masks, pending signals, and process states.
-1. Pending Signal Set (sigpending)
 
-When a signal is sent to a process (via kill(), alarm(), or another method), it is added to the process's pending signal set. This is a bitmask stored in the process’s kernel structure. Each signal has a specific bit in this set. If a signal is blocked, it stays in the pending set until unblocked. If a signal is not blocked, the process handles it immediately.
-
-2. Where Exactly is the Signal Stored?
-Inside the Kernel Process Table
-
-Each process in the system has a process descriptor (task_struct in Linux).
-This structure contains:
-
-    A pending signal queue (struct sigpending)
-    A blocked signal mask (sigset_t blocked)
-    The signal handler table (struct sighand_struct)
-
-Kernel Signal Storage Example (Linux)
-
-struct task_struct {
-    sigset_t blocked;        // Mask of blocked signals
-    struct sigpending pending;  // Signals that are pending
-    struct sighand_struct *sighand;  // Signal handlers
-};
-
-3. How the Kernel Processes a Signal
+How the Kernel Processes a Signal
 
     Signal Sent:
 
         A signal (e.g., SIGALRM) is sent via kill(), alarm(), etc.
-        The kernel adds it to the pending signal set in task_struct.
+        The kernel adds it to the processes's pending signal set in task_struct.
+        Pending Signal Set (sigpending). This is a bitmask stored in the process’s 
+        kernel structure. Each signal has a specific bit in this set.
+
 
     Check Blocked Signals:
 
@@ -113,10 +95,24 @@ struct task_struct {
         Once handled, the signal disappears from pending.
         If it was blocked, it stays in pending until unblocked.
 
+Signal sets in 42's sandbox:
+
+1. sa.sa_mask in the sigaction structure:
+
+    Purpose: This is used to specify which signals should be blocked while the signal handler (handle_alarm) is executing. In the case of sa.sa_mask, no signals are blocked during the handler by default, because it is initialized with sigemptyset(&sa.sa_mask).
+
+    Use: When sigaction is called to set up a handler for SIGALRM, sa_mask controls what signals are blocked temporarily while the handler is running. However, in this case, the program doesn't block any signals during the execution of the handle_alarm function because the set is empty.
+
+2. set used with sigprocmask:
+
+    Purpose: This signal set (set) is used to block signals (SIGINT, SIGTERM) while the main program executes critical sections of code, such as managing the child process or performing operations like fork(), waitpid(), etc.
+
+    Use: Specifically, set is used in combination with sigprocmask() to block SIGINT and SIGTERM so that the program doesn’t get interrupted by these signals during the critical section (e.g., child process management). After the critical section is completed, the signals are unblocked using sigprocmask(SIG_UNBLOCK, &set, NULL).
+
 #### GLOBAL VARIABLE static volatile sig_atomic_t timeout_flag 
 
-static: This makes timeout_flag a local static variable, meaning it’s only visible within the file and retains its value across function calls. It's not destroyed when the function scope ends.
+´static:´ This makes timeout_flag a local static variable, meaning it’s only visible within the file and retains its value across function calls. It's not destroyed when the function scope ends.
 
-volatile: This keyword tells the compiler that the value of timeout_flag can be changed outside the program's control, such as within a signal handler. This ensures that the compiler doesn’t optimize reads or writes to timeout_flag as it could be modified asynchronously by the signal handler.
+´volatile:´ This keyword tells the compiler that the value of timeout_flag can be changed outside the program's control, such as within a signal handler. This ensures that the compiler doesn’t optimize reads or writes to timeout_flag as it could be modified asynchronously by the signal handler.
 
-sig_atomic_t: This is a type that guarantees atomic access to the variable, meaning operations on this variable are guaranteed to be indivisible. This is important for signal safety. When signals are handled, the program may be interrupted at any point, and the signal handler may access or modify variables. Using sig_atomic_t ensures that modifications to this variable are atomic, preventing inconsistencies when it’s accessed by both the signal handler and the main program.
+´sig_atomic_t:´ Reading and writing this data type is guaranteed to happen in a single instruction, so there’s no way for a handler to run “in the middle” of an access. When signals are handled, the program may be interrupted at any point, and the signal handler may access or modify variables. Using sig_atomic_t ensures that modifications to the variable prevent inconsistencies when it is accessed by both the signal handler and the main program.

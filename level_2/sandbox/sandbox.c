@@ -19,83 +19,69 @@ void	handle_alarm(int sig)
 
 int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
-	pid_t				cpid;
-	struct sigaction 	sa;
-	sigset_t			set;
-	int					status;
-	pid_t				ret;
-
+	pid_t				cpid; // A variable to store the child process ID.
+	struct sigaction 	sa;  // A variable to configure the signal handler.
+	sigset_t			set; // A signal set for blocking specific signals.
+	int					status; // A variable where the exit status of the child will be stored.
+	pid_t				ret; // A variable to store the return value from wa.
+	int 				exit_code;
 	
 	sa.sa_handler = handle_alarm; // Setup signal handling for timeout
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
-	sigemptyset(&set); // init to 0
-	sigaddset(&set, SIGINT); // add SIGINT to signal sets
-	sigaddset(&set, SIGTERM); // add SIGTERM to signal sets
-	sigprocmask(SIG_BLOCK, &set, NULL); // block signals set
-	if (sigaction(SIGALRM, &sa, NULL) == -1)
+	sigemptyset(&sa.sa_mask);  // Initialize sa_mask to an empty signal set (no signals are blocked during signal handling).
+	sa.sa_flags = 0;  // Set signal handler flags to 0 (default behavior).
+	if (sigaction(SIGALRM, &sa, NULL) == -1) // Set up the signal handler for SIGALRM. If it fails, handle the error.
 	{
-		perror("sigaction failed");
 		return (-1);
 	}
 
 	cpid = fork();
 	if (cpid == -1)
 	{
-		perror("fork failed");
 		return (-1);
 	}
-
 	if (cpid == 0) // Child process
 	{
-		// Reset signals to default to avoid inheriting parent's handlers
-		struct sigaction sa_default = { .sa_handler = SIG_DFL };
-		sigaction(SIGALRM, &sa_default, NULL);
 		f(); // Execute function
 		exit(0);
 	}
-	else // Parent process
-	{
-		alarm(timeout); // Start timeout
-		// Check if child finishes before timeout
-		while (1)
-		{
-			ret = waitpid(cpid, &status, WNOHANG);
-			if (ret == cpid) // Child exited
-			{
-				if (WIFEXITED(status)) // Case 1: Child terminated normally
-				{
-					int exit_code = WEXITSTATUS(status);
-					if (exit_code == 0) // Case 1.1: Child terminated with 0 exit code
-					{
-						if (verbose)
-							printf("Nice function!\n");
-						return (1);
-					}
-					else // Case 1.2: Child terminated with non-zero exit code
-					{
-						if (verbose)
-							printf("Bad function: exited with code %d\n", exit_code);
-						return (0);
-					}
-				} 
-				else if (WIFSIGNALED(status)) // Case 2: Child was killed by a signal
-				{
-					if (verbose)
-						printf("Bad function: %s\n", strsignal(WTERMSIG(status)));
-					return (0);
-				}
-			}
-			else if (timeout_flag) // Case 3: Timeout occurred
-			{
-				kill(cpid, SIGKILL); // Kill child process
-				waitpid(cpid, &status, 0); // Clean up zombie process
-				if (verbose)
-					printf("Bad function: timed out after %u seconds\n", timeout);
-				return (0);
-			}
-			usleep(1000); // Sleep briefly to reduce CPU usage
-		}
-	}
-	sigprocmask(SIG_UNBLOCK, &set, NULL); //unblock signals set
+	alarm(timeout);
+    while (1)
+    {
+        ret = waitpid(cpid, &status, 0);
+        if (ret == cpid) // Child exited
+        {
+            if (WIFEXITED(status)) // Case 1: Child terminated normally
+            {
+                exit_code = WEXITSTATUS(status);
+                if (status == 0) // Case 1.1: Child terminated with 0 exit code
+                {
+                    if(verbose)
+                        printf("Nice function\n");
+                    return (0);
+                }
+                else // Case 1.2: Child terminated with non-zero exit code
+                {
+                    if (verbose)
+                        printf("Bad function: exited with code %d\n", exit_code);
+                    return (1);
+                }
+            }
+            else if (WIFSIGNALED(status)) // Case 2: Child was killed by a signal
+            {
+                if (verbose)
+                    printf("Bad function: %s\n", strsignal(WTERMSIG(status)));
+                return (0);
+            }
+        } 
+        else if (timeout_flag) // Case 3: Timeout occurred
+        {
+            kill(cpid, SIGKILL); // Kill child process
+            waitpid(cpid, &status, 0); // Clean up zombie process
+            if (verbose)
+                printf("Bad funciton: timed out after %d seconds\n", timeout);
+            return(0);
+        }
+        usleep(1000);
+    }
+    return (-1);
 }
