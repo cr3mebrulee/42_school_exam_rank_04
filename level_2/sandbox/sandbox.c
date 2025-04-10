@@ -41,16 +41,16 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 	}
 	if (cpid == 0) // Child process
 	{
-		f(); // Execute function
+		f();
 		exit(0);
 	}
 	alarm(timeout);
     while (1)
     {
         ret = waitpid(cpid, &status, 0);
-        if (ret == cpid) // Child exited
+        if (ret == cpid) // Checks if waitpid() successfully returned and that it returned the child PID
         {
-            if (WIFEXITED(status)) // Case 1: Child terminated normally
+            if (WIFEXITED(status)) // Case 1: the child exited normally (e.g., return 0;).
             {
                 exit_code = WEXITSTATUS(status);
                 if (status == 0) // Case 1.1: Child terminated with 0 exit code
