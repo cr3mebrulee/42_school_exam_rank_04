@@ -16,7 +16,8 @@ typedef struct node {
 
 node	*new_node(node n);
 void	unexpected(char c);
-int	accept(char *s, char c);
-int	expect(char *s, char c);
-int	eval_tree(node *tree);
-node	*pars_expr(char *s);
+int		accept(char **s, char c);
+int		expect(char **s, char c);
+int		eval_tree(node *tree);
+node	*pars_expr(char **s);
+void destroy_tree(node* tree);
