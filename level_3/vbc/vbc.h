@@ -1,3 +1,6 @@
+#ifndef VBC_H
+#define VBC_H
+
 #include <ctype.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -20,4 +23,6 @@ int		accept(char **s, char c);
 int		expect(char **s, char c);
 int		eval_tree(node *tree);
 node	*pars_expr(char **s);
-void destroy_tree(node* tree);
+void	destroy_tree(node* tree);
+
+#endif
