@@ -53,7 +53,7 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
             if (WIFEXITED(status)) // Case 1: the child exited normally (e.g., return 0;).
             {
                 exit_code = WEXITSTATUS(status);
-                if (status == 0) // Case 1.1: Child terminated with 0 exit code
+                if (exit_code == 0) // Case 1.1: Child terminated with 0 exit code
                 {
                     if(verbose)
                         printf("Nice function\n");
