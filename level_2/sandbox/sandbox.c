@@ -45,43 +45,43 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 		exit(0);
 	}
 	alarm(timeout);
-    while (1)
-    {
-        ret = waitpid(cpid, &status, 0);
-        if (ret == cpid) // Checks if waitpid() successfully returned and that it returned the child PID
-        {
-            if (WIFEXITED(status)) // Case 1: the child exited normally (e.g., return 0;).
-            {
-                exit_code = WEXITSTATUS(status);
-                if (exit_code == 0) // Case 1.1: Child terminated with 0 exit code
-                {
-                    if(verbose)
-                        printf("Nice function\n");
-                    return (0);
-                }
-                else // Case 1.2: Child terminated with non-zero exit code
-                {
-                    if (verbose)
-                        printf("Bad function: exited with code %d\n", exit_code);
-                    return (1);
-                }
-            }
-            else if (WIFSIGNALED(status)) // Case 2: Child was killed by a signal
-            {
-                if (verbose)
-                    printf("Bad function: %s\n", strsignal(WTERMSIG(status)));
-                return (0);
-            }
-        } 
-        else if (timeout_flag) // Case 3: Timeout occurred
-        {
-            kill(cpid, SIGKILL); // Kill child process
-            waitpid(cpid, &status, 0); // Clean up zombie process
-            if (verbose)
-                printf("Bad funciton: timed out after %d seconds\n", timeout);
-            return(0);
-        }
-        usleep(1000);
-    }
-    return (-1);
+	while (1)
+	{
+		ret = waitpid(cpid, &status, 0);
+		if (ret == cpid) // Checks if waitpid() successfully returned and that it returned the child PID
+		{
+			if (WIFEXITED(status)) // Case 1: the child exited normally (e.g., return 0;).
+			{
+				exit_code = WEXITSTATUS(status);
+				if (exit_code == 0) // Case 1.1: Child terminated with 0 exit code
+				{
+					if(verbose)
+						printf("Nice function\n");
+					return (0);
+				}
+				else // Case 1.2: Child terminated with non-zero exit code
+				{
+					if (verbose)
+						printf("Bad function: exited with code %d\n", exit_code);
+					return (1);
+				}
+			}
+			else if (WIFSIGNALED(status)) // Case 2: Child was killed by a signal
+			{
+				if (verbose)
+					printf("Bad function: %s\n", strsignal(WTERMSIG(status)));
+				return (0);
+			}
+		} 
+		else if (timeout_flag) // Case 3: Timeout occurred
+		{
+			kill(cpid, SIGKILL); // Kill child process
+			waitpid(cpid, &status, 0); // Clean up zombie process
+			if (verbose)
+				printf("Bad funciton: timed out after %d seconds\n", timeout);
+			return(0);
+		}
+		usleep(1000);
+	}
+	return (-1);
 }
