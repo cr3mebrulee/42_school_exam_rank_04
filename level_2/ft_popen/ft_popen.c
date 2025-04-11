@@ -47,4 +47,5 @@ int	ft_popen(const char *file, char *const argv[], char type)
 		close(pipefd[0]);
 		return (pipefd[1]);
 	}
+	return (-1);
 }
