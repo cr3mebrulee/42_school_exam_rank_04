@@ -29,15 +29,15 @@ int handle_redirection(int i, int n, int fds[][2])
 	// Intermediate commands: redirect stdin and stdout to pipes
 	else if (i > 0 && i < n - 1)
 	{
-		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from previous pipe
+		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from read end of previous pipe
 		close(fds[i - 1][0]);
-		dup2(fds[i][1], STDOUT_FILENO);     // Write to current pipe
+		dup2(fds[i][1], STDOUT_FILENO);     // Write to write end of current pipe
 		close(fds[i][1]);
 	}
 	// Last command: redirect stdin from the previous pipe
 	else if (i == n - 1)
 	{
-		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from previous pipe
+		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from end read of previous pipe
 		close(fds[i - 1][0]);
 	}
 	// Close all pipe fds
