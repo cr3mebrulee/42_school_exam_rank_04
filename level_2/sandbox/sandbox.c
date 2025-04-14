@@ -21,7 +21,6 @@ int	sandbox(void (*f)(void), unsigned int timeout, bool verbose)
 {
 	pid_t				cpid; // A variable to store the child process ID.
 	struct sigaction 	sa;  // A variable to configure the signal handler.
-	sigset_t			set; // A signal set for blocking specific signals.
 	int					status; // A variable where the exit status of the child will be stored.
 	pid_t				ret; // A variable to store the return value from wa.
 	int 				exit_code;
