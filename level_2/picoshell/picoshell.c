@@ -2,103 +2,76 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#define DEBUG
-
-int create_pipes(int fds[][2], int n)
-{
-	for (int i = 0; i < n - 1; i++)
-	{
-		if (pipe(fds[i]) == -1)
-		{
-			return (-1);
-		}
-	}
-	return (0);
-}
+//#define DEBUG
 
 // Function to handle the redirection and file descriptor management for each child
-int handle_redirection(int i, int n, int fds[][2]) 
+int handle_redirection(int i, int n, int fds[2], int tmp_fd) 
 {
-	// First command: redirect stdout to the first pipe
-	if (i == 0)
+	if (i == 0) // First command
 	{
-		dup2(fds[i][1], STDOUT_FILENO);
-		close(fds[i][1]);
+		dup2(fds[1], STDOUT_FILENO);
+		close(fds[0]);
+		close(fds[1]);
 	}
-	// Intermediate commands: redirect stdin and stdout to pipes
-	else if (i > 0 && i < n - 1)
+	else if (i < n - 1) // Middle commands
 	{
-		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from read end of previous pipe
-		close(fds[i - 1][0]);
-		dup2(fds[i][1], STDOUT_FILENO);     // Write to write end of current pipe
-		close(fds[i][1]);
+		dup2(tmp_fd, STDIN_FILENO);
+		dup2(fds[1], STDOUT_FILENO);
+		close(tmp_fd);
+		close(fds[0]);
+		close(fds[1]);
 	}
-	// Last command: redirect stdin from the previous pipe
-	else if (i == n - 1)
+	else // Last command
 	{
-		dup2(fds[i - 1][0], STDIN_FILENO);  // Read from end read of previous pipe
-		close(fds[i - 1][0]);
+		dup2(tmp_fd, STDIN_FILENO);
+		close(tmp_fd);
 	}
-	// Close all pipe fds
-	for (int j = 0; j < n - 1; j++)
-	{
-		close(fds[j][0]);
-		close(fds[j][1]);
-	}
-	return (0);
+	return 0;
 }
 
-// Function to fork the child process and execute the command
-int execute_command(char **cmds[], int i, int n, int fds[][2]) 
-{
-	pid_t cpid = fork();
-	if (cpid == 0) 
-	{
-		// Handle redirection
-		if (handle_redirection(i, n, fds) == -1) 
-		{
-			return (-1);
-		}
-		// Execute command
-		if (execvp(cmds[i][0], cmds[i]) == -1) 
-		{
-			return (-1);
-		}
-	}
-	return (0);
-}
-
-// Main function that sets up the pipe execution
 int execute_in_pipe(char **cmds[], int n) 
 {
-	int fds[n - 1][2];
-	pid_t cpid;
+	int fds[2];
+	int tmp_fd = -1;
+	pid_t pid;
 
-	// Create pipes
-	if (create_pipes(fds, n) == -1) 
-	{
-		return (-1);
-	}
-	// Execute commands
 	for (int i = 0; i < n; i++) 
 	{
-		if (execute_command(cmds, i, n, fds) == -1) 
+		if (i < n - 1 && pipe(fds) == -1)
 		{
-			return (-1);
+			perror("pipe");
+			return -1;
+		}
+		pid = fork();
+		if (pid == -1)
+		{
+			perror("fork");
+			return -1;
+		}
+
+		if (pid == 0) // Child
+		{
+			if (handle_redirection(i, n, fds, tmp_fd) == -1)
+				exit(EXIT_FAILURE);
+			execvp(cmds[i][0], cmds[i]);
+			perror("execvp");
+			exit(EXIT_FAILURE);
+		}
+		// Parent closes unused ends
+		if (tmp_fd != -1)
+			close(tmp_fd);      // Close previous read end
+		if (i < n - 1) {
+			tmp_fd = fds[0];    // Save current read end for next command
+			close(fds[1]);      // Close current write end
 		}
 	}
-	// Parent process: close pipe fds and wait for children
-	for (int i = 0; i < n - 1; i++)
-	{
-		close(fds[i][0]);
-		close(fds[i][1]);
-	}
-	for (int i = 0; i < n; i++) 
-	{
-		wait(NULL);  // Wait for all children
-	}
-	return (0);
+
+	// Wait for all children
+	for (int i = 0; i < n; i++)
+		wait(NULL);
+	return 0;
 }
 
 int	calculate_cmds(char **cmds[], int *n)
@@ -106,7 +79,7 @@ int	calculate_cmds(char **cmds[], int *n)
 	int	i = 0;
 
 	if (!cmds || ! *cmds[0] || !cmds[0][0])
-		return (-1);
+		return (1);
 	while (cmds[i] != NULL)
 	{
 		i++;
@@ -119,8 +92,8 @@ int	picoshell(char **cmds[])
 {
 	int		n;
 
-	if (calculate_cmds(cmds, &n) == -1)
-		return (1);
+	if (calculate_cmds(cmds, &n))
+		return (0);
 	#ifdef DEBUG
 		printf("Commands number %d\n", n);
 	#endif
